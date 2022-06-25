@@ -1,6 +1,32 @@
-const { projects, client, clients } = require('../sampleData');
+const { projects, clients } = require('../sampleData.js');
 
-const { GraphQLObjectType, GraphQLID, GraphQLString } = require('graphql'); //bring object type, cuz when we have different resources we specify Object Types
+const Project = require('../models/Project');
+const Client = require('../models/Client');
+
+const {
+	GraphQLObjectType,
+	GraphQLID,
+	GraphQLString,
+	GraphQLSchema,
+	GraphQLList,
+} = require('graphql'); //bring object type, cuz when we have different resources we specify Object Types
+
+//Project type
+const ProjectType = new GraphQLObjectType({
+	name: 'Project',
+	fields: () => ({
+		id: { type: GraphQLID },
+		name: { type: GraphQLString },
+		description: { type: GraphQLString },
+		status: { type: GraphQLString },
+		client: {
+			type: ClientType,
+			resolve(parent, args) {
+				return Client.findById(parent.clientId);
+			},
+		},
+	}),
+});
 
 //Client type
 const ClientType = new GraphQLObjectType({
@@ -16,12 +42,35 @@ const ClientType = new GraphQLObjectType({
 const RootQuery = new GraphQLObjectType({
 	name: 'RootQueryType',
 	fields: {
+		projects: {
+			type: new GraphQLList(ProjectType),
+			resolve(parents, args) {
+				return Project.find();
+			},
+		},
+		project: {
+			type: ProjectType,
+			args: { id: { type: GraphQLID } },
+			resolve(parent, args) {
+				return Project.findById(args.id);
+			},
+		},
+		clients: {
+			type: new GraphQLList(ClientType),
+			resolve(parents, args) {
+				return Client.find();
+			},
+		},
 		client: {
 			type: ClientType,
 			args: { id: { type: GraphQLID } },
 			resolve(parent, args) {
-				return clients.find((client) => client.id === args.id);
+				return Client.findById(args.id);
 			},
 		},
 	},
+});
+
+module.exports = new GraphQLSchema({
+	query: RootQuery,
 });
