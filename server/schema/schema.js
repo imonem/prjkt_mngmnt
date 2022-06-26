@@ -10,6 +10,7 @@ const {
 	GraphQLSchema,
 	GraphQLList,
 	GraphQLNonNull,
+	GraphQLEnumType,
 } = require('graphql'); //bring object type, cuz when we have different resources we specify Object Types
 
 //Project type
@@ -90,6 +91,89 @@ const mutation = new GraphQLObjectType({
 					phone: args.phone,
 				});
 				return client.save();
+			},
+		},
+		// Delete a client
+		deleteClient: {
+			type: ClientType,
+			args: {
+				id: { type: GraphQLNonNull(GraphQLID) },
+			},
+			resolve(parent, args) {
+				return Client.findByIdAndRemove(args.id);
+			},
+		},
+		//Add a project - adding a new status value must be defined in the Project model first else error
+		addProject: {
+			type: ProjectType,
+			args: {
+				name: { type: GraphQLNonNull(GraphQLString) },
+				description: { type: GraphQLNonNull(GraphQLString) },
+				status: {
+					type: new GraphQLEnumType({
+						name: 'ProjectStatus',
+						values: {
+							new: { value: 'Not Started' },
+							progress: { value: 'In Progress' },
+							block: { value: 'Progress Blocked' },
+							completed: { value: 'Completed' },
+						},
+					}),
+					defaultValue: 'Not Started',
+				},
+				clientId: { type: GraphQLNonNull(GraphQLID) },
+			},
+			resolve(parent, args) {
+				const project = new Project({
+					name: args.name,
+					description: args.description,
+					status: args.status,
+					clientId: args.clientId,
+				});
+				return project.save();
+			},
+		},
+		//Delete a project
+		deleteProject: {
+			type: ProjectType,
+			args: {
+				id: { type: GraphQLNonNull(GraphQLID) },
+			},
+			resolve(parent, args) {
+				return Project.findByIdAndRemove(args.id);
+			},
+		},
+		// Update a project
+		updateProject: {
+			type: ProjectType,
+			args: {
+				id: { type: GraphQLNonNull(GraphQLID) },
+				name: { type: GraphQLString },
+				description: { type: GraphQLString },
+				status: {
+					type: new GraphQLEnumType({
+						name: 'ProjectStatusUpdate', //same as status enum type above and also name is unique
+						values: {
+							new: { value: 'Not Started' },
+							progress: { value: 'In Progress' },
+							block: { value: 'Progress Blocked' },
+							completed: { value: 'Completed' },
+						},
+					}),
+				},
+			},
+			resolve(parent, args) {
+				return Project.findByIdAndUpdate(
+					args.id,
+					{
+						$set: {
+							name: args.name,
+							description: args.description,
+							status: args.status,
+						},
+					},
+					{ new: true },
+				);
 			},
 		},
 	},
