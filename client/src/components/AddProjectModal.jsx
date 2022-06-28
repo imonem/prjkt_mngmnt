@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { FaList } from 'react-icons/fa';
 import { useMutation, useQuery } from '@apollo/client';
-import { ADD_CLIENT } from '../mutations/clientMutations';
 import { GET_PROJECTS } from '../queries/projectsQueries';
 import { GET_CLIENTS } from '../queries/clientQueries';
-import Spinner from './Spinner';
 import { ADD_PROJECT } from '../mutations/projectMutations';
 
 export default function AddClientModal() {
