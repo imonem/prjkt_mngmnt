@@ -5,6 +5,7 @@ import { ADD_CLIENT } from '../mutations/clientMutations';
 import { GET_PROJECTS } from '../queries/projectsQueries';
 import { GET_CLIENTS } from '../queries/clientQueries';
 import Spinner from './Spinner';
+import { ADD_PROJECT } from '../mutations/projectMutations';
 
 export default function AddClientModal() {
 	const [name, setName] = useState('');
@@ -15,16 +16,16 @@ export default function AddClientModal() {
 	//Get Clients for select
 	const { loading, error, data } = useQuery(GET_CLIENTS);
 
-	const [addClient] = useMutation(ADD_CLIENT, {
-		variables: { name, description, status },
-		update(cache, { data: { addClient } }) {
-			const { clients } = cache.readQuery({
-				query: GET_CLIENTS,
+	const [addProject] = useMutation(ADD_PROJECT, {
+		variables: { name, description, status, clientId },
+		update(cache, { data: { addProject } }) {
+			const { projects } = cache.readQuery({
+				query: GET_PROJECTS,
 			});
 
 			cache.writeQuery({
-				query: GET_CLIENTS,
-				data: { clients: [...clients, addClient] },
+				query: GET_PROJECTS,
+				data: { projects: [...projects, addProject] },
 			});
 		},
 	});
@@ -34,7 +35,7 @@ export default function AddClientModal() {
 		if (name === '' || description === '' || status === '') {
 			return alert('Please fill in all the fields');
 		}
-		addClient(name, description, status);
+		addProject(name, description, status, clientId);
 
 		setName('');
 		setDescription('');
